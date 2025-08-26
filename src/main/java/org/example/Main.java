@@ -1,9 +1,7 @@
 package org.example;
 
 import java.util.*;
-
-
-
+import java.util.stream.Collectors;
 
 public class Main {
     public static void main(String[] args) {
@@ -26,21 +24,37 @@ public class Main {
 
         System.out.println("Desea realiza pedido escriba SI para pedir otro plato o FIN si ya termino de pedir");
         String pedido = scanner.nextLine();
+        try {
+            if (!pedido.equalsIgnoreCase("Si") && !pedido.equalsIgnoreCase("Fin")) {
+                throw new IllegalArgumentException("❌ Solo se permite escribir 'SI' o 'FIN'");
+            }
+        } catch (IllegalArgumentException e) {
+            System.out.println(e.getMessage());
+        }
 
         while (!pedido.equalsIgnoreCase("Fin") && pedido.equalsIgnoreCase("Si")) {
+
+
 
             System.out.println("Ingrese el nombre del plato:");
             String plato = scanner.nextLine();
 
             try {
                 validarPlato(plato, platos);
-                System.out.println("✅ " + plato + " agregado al pedido");
+                pedidos.add(plato);
             } catch (PlatoNoEncontradoException excepcion) {
                 System.out.println(excepcion.getMessage());
             }
 
             System.out.println("Desea realiza pedido escriba SI para pedir otro plato o FIN si ya termino de pedir");
             pedido = scanner.nextLine();
+            try {
+                if (!pedido.equalsIgnoreCase("Si") && !pedido.equalsIgnoreCase("Fin")) {
+                    throw new IllegalArgumentException("❌ Solo se permite escribir 'SI' o 'FIN'");
+                }
+            } catch (IllegalArgumentException e) {
+                System.out.println(e.getMessage());
+            }
         }
 
         System.out.println("Tus pedidos fueron: " + pedidos);
@@ -69,14 +83,28 @@ public class Main {
                 .orElse(0);
         System.out.println("El precio promedio de la compra es de: " + promedio);
 
+        List<String> repetidos = pedidos.stream()
+                .filter(i -> Collections.frequency(pedidos, i) > 1)
+                .distinct()
+                .collect(Collectors.toList());
+        String masRepetido = repetidos.stream()
+                .max(Comparator.comparingInt(i -> Collections.frequency(pedidos, i)))
+                .orElse("No hay repetidos");
+        long vecesRepetido = pedidos.stream()
+                .filter(p -> p.equalsIgnoreCase(masRepetido))
+                .count();
+
+        System.out.println("El plato mas repetido es " + masRepetido + " y se repitio " + vecesRepetido);
+
+
     }
     public static class PlatoNoEncontradoException extends RuntimeException {
         public PlatoNoEncontradoException(String mensaje) {
             super(mensaje);
         }
     }
-    public static boolean validarPlato(String plato, HashMap<String, Double> menu) {
-        if (menu.containsKey(plato)) {
+    public static boolean validarPlato(String plato, HashMap<String, Double> platos) {
+        if (platos.containsKey(plato)) {
             return true;
         } else {
             throw new PlatoNoEncontradoException("❌ Ese plato no existe: " + plato);
